@@ -75,12 +75,16 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 tvMessage.setText("Initialize without error");
             }
+
             socketStatusServer = new DatagramSocket(null);
             InetSocketAddress addressStatus = new InetSocketAddress("0.0.0.0", 8890);
             socketStatusServer.bind(addressStatus);
+
+
             socketStreamOnServer = new DatagramSocket(null);
             InetSocketAddress addressStreamOn = new InetSocketAddress("0.0.0.0", 11111);
             socketStreamOnServer.bind(addressStreamOn);
+
         } catch (IOException e) {
             tvMessage.setText("Error on initialize: " + e.getMessage());
         }
@@ -123,6 +127,11 @@ public class MainActivity extends AppCompatActivity {
         SendOneCommand sendOneCommand = new SendOneCommand();
         sendOneCommand.doInBackground("streamoff");
         streamOnDatagramReceiver.kill();
+    }
+
+    public void on_click_btnSendStreamOnCommandOnly(View v) {
+        SendOneCommand sendOneCommand = new SendOneCommand();
+        sendOneCommand.doInBackground("streamon");
     }
 
     public class SendOneCommand extends AsyncTask<String, String, String> {
@@ -325,7 +334,9 @@ public class MainActivity extends AppCompatActivity {
         // Original java line for FFMpeg
         // Runtime.getRuntime().exec("ffmpeg -i udp://0.0.0.0:11111 -f sdl Tello");
 
-        String[] cmd = {"-i udp://0.0.0.0:11111","-f sdl Tello"};
+        String commandString = " -i udp://0.0.0.0:11111 -f sdl Tello ";
+        String[] cmd;
+        cmd = commandString.split(" ");
         FFmpeg ffmpeg = FFmpeg.getInstance(this);
         // to execute "ffmpeg -version" command you just need to pass "-version"
 

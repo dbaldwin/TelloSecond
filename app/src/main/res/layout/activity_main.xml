@@ -130,11 +130,20 @@
         android:id="@+id/btnFfmpegVideoStream"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="27dp"
+        android:layout_marginTop="8dp"
         android:onClick="on_click_btnCaptureVideoStream"
         android:text="Use FFMPEG for video"
-        app:layout_constraintTop_toBottomOf="@+id/btnEndStreamOn"
         app:layout_constraintStart_toStartOf="@+id/btnEndStreamOn"
-        tools:layout_editor_absoluteX="224dp" />
+        app:layout_constraintTop_toBottomOf="@+id/btnSendStreamOnCommandOnly" />
+
+    <Button
+        android:id="@+id/btnSendStreamOnCommandOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:onClick="on_click_btnSendStreamOnCommandOnly"
+        android:text="Send StreamOn cmd Only"
+        app:layout_constraintStart_toStartOf="@+id/btnEndStreamOn"
+        app:layout_constraintTop_toBottomOf="@+id/btnEndStreamOn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
