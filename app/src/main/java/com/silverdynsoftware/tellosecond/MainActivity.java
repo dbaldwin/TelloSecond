@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -54,9 +55,14 @@ public class MainActivity extends AppCompatActivity {
         tvMessage = findViewById(R.id.tvMessage);
         tvStatus = findViewById(R.id.tvStatus);
         tvVideo = findViewById(R.id.tvVideo);
+        enableStrictMode();
     }
 
-
+    public void enableStrictMode()
+    {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+    }
 
 
 
@@ -319,9 +325,10 @@ public class MainActivity extends AppCompatActivity {
         // Original java line for FFMpeg
         // Runtime.getRuntime().exec("ffmpeg -i udp://0.0.0.0:11111 -f sdl Tello");
 
-        String[] cmd = {"-i udp://0.0.0.0:11111 -f sdl Tello"};
+        String[] cmd = {"-i udp://0.0.0.0:11111","-f sdl Tello"};
         FFmpeg ffmpeg = FFmpeg.getInstance(this);
         // to execute "ffmpeg -version" command you just need to pass "-version"
+
         ffmpeg.execute(cmd, new ExecuteBinaryResponseHandler() {
 
             @Override
