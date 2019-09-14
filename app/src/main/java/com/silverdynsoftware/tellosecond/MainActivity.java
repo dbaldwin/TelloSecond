@@ -5,12 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.silverdynsoftware.tellosecond.greenRobot.eventsGreenRobot;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 
 import nl.bravobit.ffmpeg.ExecuteBinaryResponseHandler;
 import nl.bravobit.ffmpeg.FFmpeg;
+import nl.bravobit.ffmpeg.FFtask;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -46,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     StatusDatagramReceiver statusDatagramReceiver;
     StreamOnDatagramReceiver streamOnDatagramReceiver;
 
+    FFtask fftask;
+
 
 
     @Override
@@ -55,14 +59,13 @@ public class MainActivity extends AppCompatActivity {
         tvMessage = findViewById(R.id.tvMessage);
         tvStatus = findViewById(R.id.tvStatus);
         tvVideo = findViewById(R.id.tvVideo);
-        enableStrictMode();
-    }
 
-    public void enableStrictMode()
-    {
+        // So we can get the
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
     }
+
+
 
 
 
@@ -75,16 +78,12 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 tvMessage.setText("Initialize without error");
             }
-
             socketStatusServer = new DatagramSocket(null);
             InetSocketAddress addressStatus = new InetSocketAddress("0.0.0.0", 8890);
             socketStatusServer.bind(addressStatus);
-
-
             socketStreamOnServer = new DatagramSocket(null);
-            InetSocketAddress addressStreamOn = new InetSocketAddress("0.0.0.0", 11111);
-            socketStreamOnServer.bind(addressStreamOn);
-
+            //InetSocketAddress addressStreamOn = new InetSocketAddress("0.0.0.0", 11111);
+            //socketStreamOnServer.bind(addressStreamOn);
         } catch (IOException e) {
             tvMessage.setText("Error on initialize: " + e.getMessage());
         }
@@ -119,19 +118,14 @@ public class MainActivity extends AppCompatActivity {
     public void on_click_btnStartVideo(View v) {
         SendOneCommand sendOneCommand = new SendOneCommand();
         sendOneCommand.doInBackground("streamon");
-        streamOnDatagramReceiver = new StreamOnDatagramReceiver();
-        streamOnDatagramReceiver.start();
+        //streamOnDatagramReceiver = new StreamOnDatagramReceiver();
+        //streamOnDatagramReceiver.start();
     }
 
     public void on_click_btnStopVideo(View v) {
         SendOneCommand sendOneCommand = new SendOneCommand();
         sendOneCommand.doInBackground("streamoff");
         streamOnDatagramReceiver.kill();
-    }
-
-    public void on_click_btnSendStreamOnCommandOnly(View v) {
-        SendOneCommand sendOneCommand = new SendOneCommand();
-        sendOneCommand.doInBackground("streamon");
     }
 
     public class SendOneCommand extends AsyncTask<String, String, String> {
@@ -334,22 +328,29 @@ public class MainActivity extends AppCompatActivity {
         // Original java line for FFMpeg
         // Runtime.getRuntime().exec("ffmpeg -i udp://0.0.0.0:11111 -f sdl Tello");
 
-        String commandString = " -i udp://0.0.0.0:11111 -f sdl Tello ";
-        String[] cmd;
-        cmd = commandString.split(" ");
+        File directory = getFilesDir();
+        String output = directory + "/tello.mp4";
+
+
+        Log.v("MainActivity", "The storage path is: " + output);
+        String[] cmd = {"-i", "udp://127.0.0.1:11111", "-vcodec", "copy", output};
         FFmpeg ffmpeg = FFmpeg.getInstance(this);
         // to execute "ffmpeg -version" command you just need to pass "-version"
-
-        ffmpeg.execute(cmd, new ExecuteBinaryResponseHandler() {
-
-            @Override
-            public void onStart() {}
+        fftask = ffmpeg.execute(cmd, new ExecuteBinaryResponseHandler() {
 
             @Override
-            public void onProgress(String message) {}
+            public void onStart() {
+                tvMessage.setText("OnStart called");
+            }
+
+            @Override
+            public void onProgress(String message) {
+                tvMessage.setText("Progress");
+            }
 
             @Override
             public void onFailure(String message) {
+                Log.v("TEST", "FFMPEG streaming command failure: " + message);
                 tvMessage.setText("FFMPEG streaming command failure: " + message);
             }
 
@@ -362,6 +363,13 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {}
 
         });
+
+
+    }
+
+    public void on_click_btnStopVideoStream(View v) {
+        Log.v("MainActivity", "Stop FFMPEG Recording");
+        fftask.sendQuitSignal();
     }
 
 
